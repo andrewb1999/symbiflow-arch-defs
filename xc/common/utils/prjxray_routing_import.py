@@ -803,7 +803,7 @@ def create_track_rr_graph(
     print('original {} final {}'.format(num_channels, len(alive_tracks)))
 
 
-def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles):
+def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles, use_part_pins=False):
     cur = conn.cursor()
     delayless_switch = graph.get_switch_id('__vpr_delayless_switch__')
 
@@ -811,8 +811,9 @@ def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles):
         assert len(synth_tile['pins']) == 1
         for pin in synth_tile['pins']:
             if pin['port_type'] in ['input', 'output']:
-                wire_pkey = get_wire_pkey(conn, tile_name, pin['wire'])
-                cur.execute(
+                if not use_part_pins:
+                    wire_pkey = get_wire_pkey(conn, tile_name, pin['wire'])
+                    cur.execute(
                     """
 SELECT
   track_pkey
@@ -827,11 +828,17 @@ WHERE
     WHERE
       pkey = ?
   );""", (wire_pkey, )
-                )
-                (track_pkey, ) = cur.fetchone()
-                assert track_pkey is not None, (
-                    tile_name, pin['wire'], wire_pkey
-                )
+                    )
+                    (track_pkey, ) = cur.fetchone()
+                    assert track_pkey is not None, (
+                        tile_name, pin['wire'], wire_pkey
+                    )
+                else:
+                    tile_name, wire = pin['wire'].split("/")
+                    wire_pkey = get_wire_pkey(conn, tile_name, wire)
+                    cur.execute("SELECT graph_node_pkey FROM wire WHERE pkey=?;", (wire_pkey, ))
+                    (graph_node_pkey, ) = cur.fetchone()
+                    inode = node_mapping[graph_node_pkey]
             elif pin['port_type'] == 'VCC':
                 cur.execute('SELECT vcc_track_pkey FROM constant_sources')
                 (track_pkey, ) = cur.fetchone()
@@ -840,14 +847,15 @@ WHERE
                 (track_pkey, ) = cur.fetchone()
             else:
                 assert False, pin['port_type']
-            tracks_model, track_nodes = get_track_model(conn, track_pkey)
+            if not use_part_pins or pin['port_type'] in ['VCC', 'GND']:
+                tracks_model, track_nodes = get_track_model(conn, track_pkey)
 
-            option = list(
-                tracks_model.get_tracks_for_wire_at_coord(
-                    tuple(synth_tile['loc'])
-                ).values()
-            )
-            assert len(option) > 0, (pin, len(option))
+                option = list(
+                    tracks_model.get_tracks_for_wire_at_coord(
+                        tuple(synth_tile['loc'])
+                    ).values()
+                )
+                assert len(option) > 0, (pin, len(option))
 
             if pin['port_type'] == 'input':
                 tile_type = 'SYN-OUTPAD'
@@ -864,8 +872,10 @@ WHERE
             else:
                 assert False, pin
 
-            track_node = track_nodes[option[0]]
-            assert track_node in node_mapping, (track_node, track_pkey)
+            if not use_part_pins or pin['port_type'] in ['VCC', 'GND']:
+                track_node = track_nodes[option[0]]
+                assert track_node in node_mapping, (track_node, track_pkey)
+
             pin_name = graph.create_pin_name_from_tile_type_and_pin(
                 tile_type, wire
             )
@@ -874,22 +884,40 @@ WHERE
                 tuple(synth_tile['loc']), pin_name
             )
 
-            if pin['port_type'] == 'input':
-                graph.add_edge(
-                    src_node=node_mapping[track_node],
-                    sink_node=pin_node[0][0],
-                    switch_id=delayless_switch,
-                    name='synth_{}_{}'.format(tile_name, pin['wire']),
-                )
-            elif pin['port_type'] in ['VCC', 'GND', 'output']:
-                graph.add_edge(
-                    src_node=pin_node[0][0],
-                    sink_node=node_mapping[track_node],
-                    switch_id=delayless_switch,
-                    name='synth_{}_{}'.format(tile_name, pin['wire']),
-                )
+            if not use_part_pins:
+                if pin['port_type'] == 'input':
+                    graph.add_edge(
+                        src_node=node_mapping[track_node],
+                        sink_node=pin_node[0][0],
+                        switch_id=delayless_switch,
+                        name='synth_{}_{}'.format(tile_name, pin['wire']),
+                    )
+                elif pin['port_type'] in ['VCC', 'GND', 'output']:
+                    graph.add_edge(
+                        src_node=pin_node[0][0],
+                        sink_node=node_mapping[track_node],
+                        switch_id=delayless_switch,
+                        name='synth_{}_{}'.format(tile_name, pin['wire']),
+                    )
+                else:
+                    assert False, pin
             else:
-                assert False, pin
+                if pin['port_type'] == 'input':
+                    graph.add_edge(
+                        src_node=inode,
+                        sink_node=pin_node[0][0],
+                        switch_id=delayless_switch,
+                        name='synth_{}_{}'.format(tile_name, pin['wire']),
+                    )
+                elif pin['port_type'] in ['VCC', 'GND', 'output']:
+                    graph.add_edge(
+                        src_node=pin_node[0][0],
+                        sink_node=inode,
+                        switch_id=delayless_switch,
+                        name='synth_{}_{}'.format(tile_name, pin['wire']),
+                    )
+                else:
+                    assert False, pin
 
 
 def get_switch_name(conn, graph, switch_name_map, switch_pkey):
@@ -1253,6 +1281,13 @@ def main():
         '--vpr_capnp_schema_dir',
         help='Directory container VPR schema files',
     )
+    parser.add_argument(
+        '--use_part_pins',
+        default=False, 
+        action="store_true",
+        help='Use partition pins instead of VBRKs for synth tiles',
+        required=False
+    )
 
     print('{} Starting routing import'.format(now()))
     args = parser.parse_args()
@@ -1372,7 +1407,7 @@ FROM
         # Set of (src, sink, switch_id) tuples that pip edges have been sent to
         # VPR.  VPR cannot handle duplicate paths with the same switch id.
         print('{} Adding synthetic edges'.format(now()))
-        add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles)
+        add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles, args.use_part_pins)
 
         print('{} Creating channels.'.format(now()))
         channels_obj = create_channels(conn)

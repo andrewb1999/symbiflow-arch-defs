@@ -57,6 +57,7 @@ function(ADD_XC_ARCH_DEFINE)
   set(PROTOTYPE_PART ${ADD_XC_ARCH_DEFINE_PROTOTYPE_PART})
   set(YOSYS_SYNTH_SCRIPT ${ADD_XC_ARCH_DEFINE_YOSYS_SYNTH_SCRIPT})
   set(YOSYS_CONV_SCRIPT ${ADD_XC_ARCH_DEFINE_YOSYS_CONV_SCRIPT})
+  set(USR_PART_PINS ${ADD_XC_ARCH_DEFINE_USE_PART_PINS})
   set(YOSYS_TECHMAP ${symbiflow-arch-defs_SOURCE_DIR}/xc/${FAMILY}/techmap)
   set(VPR_ARCH_ARGS "\
       --router_heap bucket \
@@ -113,7 +114,7 @@ function(ADD_XC_ARCH_DEFINE)
         --read_rr_graph \${OUT_RRXML_VIRT} \
         --write_rr_graph \${OUT_RRXML_REAL} \
         --write_rr_node_map \${OUT_RRXML_REAL}.node_map.pickle \
-        --vpr_capnp_schema_dir ${VPR_CAPNP_SCHEMA_DIR}
+        --vpr_capnp_schema_dir ${VPR_CAPNP_SCHEMA_DIR} \
         "
     PLACE_TOOL
       ${symbiflow-arch-defs_SOURCE_DIR}/xc/common/utils/prjxray_create_ioplace.py

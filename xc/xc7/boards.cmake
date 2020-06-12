@@ -38,6 +38,15 @@ add_xc_board(
 )
 
 add_xc_board(
+  BOARD arty-partition-pin
+  DEVICE xc7a50t-arty-partition-pin
+  PACKAGE test
+  PROG_TOOL ${OPENOCD_TARGET}
+  PROG_CMD "${OPENOCD} -f ${PRJXRAY_DIR}/utils/openocd/board-digilent-basys3.cfg -c \\\"init $<SEMICOLON> pld load 0 \${OUT_BIN} $<SEMICOLON> exit\\\""
+  PART xc7a35tcsg324-1
+)
+
+add_xc_board(
   BOARD arty-uart
   DEVICE xc7a50t-arty-uart
   PACKAGE test

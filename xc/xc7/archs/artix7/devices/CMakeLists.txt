@@ -9,3 +9,10 @@ add_xc_device_define(
   PART xc7a50tfgg484-1
   DEVICES xc7a50t xc7a50t-bottom
 )
+add_xc_device_define(
+  ARCH artix7
+  PART xc7a50tfgg484-1
+  USE_ROI
+  USE_PART_PINS
+  DEVICES xc7a50t-arty-partition-pin
+)

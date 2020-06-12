@@ -2233,25 +2233,25 @@ def create_edges(args):
             for loc in progressbar_utils.progressbar(grid.tile_locations()):
                 gridinfo = grid.gridinfo_at_loc(loc)
                 tile_name = grid.tilename_at_loc(loc)
+                
+#                if tile_name in synth_tiles['tiles']:
+#                    assert len(synth_tiles['tiles'][tile_name]['pins']) == 1
+#                    for pin in synth_tiles['tiles'][tile_name]['pins']:
+#                        if pin['port_type'] in ['input', 'output']:
+#
+#                            _, _, _, node_pkey = find_wire(
+#                               tile_name, gridinfo.tile_type, pin['wire']
+#                           )
+#                           if pin['port_type'] == 'input':
+#                               # This track can output be used as a sink.
+#                               input_only_nodes |= set((node_pkey, ))
+#                           elif pin['port_type'] == 'output':
+#                               # This track can output be used as a src.
+#                               output_only_nodes |= set((node_pkey, ))
+#                           else:
+#                               assert False, pin
+                        
 
-                if tile_name in synth_tiles['tiles']:
-                    assert len(synth_tiles['tiles'][tile_name]['pins']) == 1
-                    for pin in synth_tiles['tiles'][tile_name]['pins']:
-                        if pin['port_type'] not in ['input', 'output']:
-                            continue
-
-                        _, _, _, node_pkey = find_wire(
-                            tile_name, gridinfo.tile_type, pin['wire']
-                        )
-
-                        if pin['port_type'] == 'input':
-                            # This track can output be used as a sink.
-                            input_only_nodes |= set((node_pkey, ))
-                        elif pin['port_type'] == 'output':
-                            # This track can output be used as a src.
-                            output_only_nodes |= set((node_pkey, ))
-                        else:
-                            assert False, pin
 
         create_and_insert_edges(
             db=db,

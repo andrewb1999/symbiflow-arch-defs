@@ -10,7 +10,7 @@ endfunction()
 
 function(PROJECT_RAY_ARCH)
   set(options)
-  set(oneValueArgs ARCH PART USE_ROI DEVICE GRAPH_LIMIT)
+  set(oneValueArgs ARCH PART USE_ROI DEVICE GRAPH_LIMIT USE_PART_PINS)
   set(multiValueArgs TILE_TYPES PB_TYPES)
   cmake_parse_arguments(
     PROJECT_RAY_ARCH
@@ -85,21 +85,39 @@ function(PROJECT_RAY_ARCH)
   if(NOT "${PROJECT_RAY_ARCH_USE_ROI}" STREQUAL "")
     set(SYNTH_DEPS "")
     append_file_dependency(SYNTH_DEPS ${GENERIC_CHANNELS})
-    add_custom_command(
-      OUTPUT synth_tiles.json
-      COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${PRJRAY_DIR}:${symbiflow-arch-defs_SOURCE_DIR}/utils
-      ${PYTHON3} ${CREATE_SYNTH_TILES}
-        --db_root ${PRJRAY_DB_DIR}/${PRJRAY_ARCH}/
-        --part ${PART}
-        --connection_database ${GENERIC_CHANNELS_LOCATION}
-        --roi ${PROJECT_RAY_ARCH_USE_ROI}
-        --synth_tiles ${CMAKE_CURRENT_BINARY_DIR}/synth_tiles.json
-      DEPENDS
-        ${CREATE_SYNTH_TILES}
-        ${PROJECT_RAY_ARCH_USE_ROI} ${SYNTH_DEPS}
-        ${PYTHON3} ${PYTHON3_TARGET} simplejson intervaltree
-        )
-
+    if ("${PROJECT_RAY_ARCH_USE_PART_PINS}" STREQUAL "")
+      add_custom_command(
+        OUTPUT synth_tiles.json
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${PRJRAY_DIR}:${symbiflow-arch-defs_SOURCE_DIR}/utils
+        ${PYTHON3} ${CREATE_SYNTH_TILES}
+          --db_root ${PRJRAY_DB_DIR}/${PRJRAY_ARCH}/
+          --part ${PART}
+          --connection_database ${GENERIC_CHANNELS_LOCATION}
+          --roi ${PROJECT_RAY_ARCH_USE_ROI}
+          --synth_tiles ${CMAKE_CURRENT_BINARY_DIR}/synth_tiles.json
+        DEPENDS
+          ${CREATE_SYNTH_TILES}
+          ${PROJECT_RAY_ARCH_USE_ROI} ${SYNTH_DEPS}
+          ${PYTHON3} ${PYTHON3_TARGET} simplejson intervaltree
+          )
+    else()
+      add_custom_command(
+        OUTPUT synth_tiles.json
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${PRJRAY_DIR}:${symbiflow-arch-defs_SOURCE_DIR}/utils
+        ${PYTHON3} ${CREATE_SYNTH_TILES}
+          --db_root ${PRJRAY_DB_DIR}/${PRJRAY_ARCH}/
+          --part ${PART}
+          --connection_database ${GENERIC_CHANNELS_LOCATION}
+          --roi ${PROJECT_RAY_ARCH_USE_ROI}
+          --synth_tiles ${CMAKE_CURRENT_BINARY_DIR}/synth_tiles.json
+          --partition_pins ${PROJECT_RAY_ARCH_USE_PART_PINS}
+        DEPENDS
+          ${CREATE_SYNTH_TILES}
+          ${PROJECT_RAY_ARCH_USE_ROI} ${SYNTH_DEPS}
+          ${PYTHON3} ${PYTHON3_TARGET} simplejson intervaltree
+          )
+    endif()
+      
     add_file_target(FILE synth_tiles.json GENERATED)
     set_target_properties(${ARCH_TARGET} PROPERTIES USE_ROI TRUE)
     set_target_properties(${ARCH_TARGET} PROPERTIES
