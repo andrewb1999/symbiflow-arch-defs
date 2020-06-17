@@ -179,7 +179,7 @@ def main():
         tile_pin_count = dict()
         num_synth_tiles = 0
         for port in sorted(j["ports"], key=lambda i: i['name']):
-            if port['name'].startswith('dout['):
+            if port['type'] == 'out':
                 port_type = 'input'
                 is_clock = False
             elif port['type'] == 'in':
