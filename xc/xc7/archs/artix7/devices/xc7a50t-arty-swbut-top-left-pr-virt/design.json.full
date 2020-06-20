@@ -86,6 +86,13 @@
             "node": "INT_L_X20Y100/SE6BEG0"
         },
         {
+            "name": "dout[5]",
+	    "type": "out",
+	    "pin": "A13",
+            "node": "INT_L_X14Y100/LH12"
+            
+        },
+        {
             "name": "dout[6]",
 	    "type": "out",
 	    "pin": "A14",

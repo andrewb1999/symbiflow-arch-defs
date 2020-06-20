@@ -808,7 +808,7 @@ def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles):
     delayless_switch = graph.get_switch_id('__vpr_delayless_switch__')
 
     for tile_name, synth_tile in synth_tiles['tiles'].items():
-        assert len(synth_tile['pins']) == 1
+        pin_num = 0
         for pin in synth_tile['pins']:
             if pin['port_type'] in ['input', 'output']:
                 wire_pkey = get_wire_pkey(conn, tile_name, pin['wire'])
@@ -847,13 +847,15 @@ WHERE
                     tuple(synth_tile['loc'])
                 ).values()
             )
+            if (len(option) == 0):
+                import pdb; pdb.set_trace()
             assert len(option) > 0, (pin, len(option))
 
             if pin['port_type'] == 'input':
-                tile_type = 'SYN-OUTPAD'
+                tile_type = 'SYN-IOPAD'
                 wire = 'outpad'
             elif pin['port_type'] == 'output':
-                tile_type = 'SYN-INPAD'
+                tile_type = 'SYN-IOPAD'
                 wire = 'inpad'
             elif pin['port_type'] == 'VCC':
                 tile_type = 'SYN-VCC'
@@ -866,9 +868,15 @@ WHERE
 
             track_node = track_nodes[option[0]]
             assert track_node in node_mapping, (track_node, track_pkey)
-            pin_name = graph.create_pin_name_from_tile_type_and_pin(
-                tile_type, wire
-            )
+            if (pin['port_type'] in ['input', 'output']):
+                pin_name = graph.create_pin_name_from_tile_type_and_pin_stacked(
+                    tile_type, pin_num, wire
+                )
+            else:
+                pin_name = graph.create_pin_name_from_tile_type_and_pin(
+                    tile_type, wire
+                )
+                
 
             pin_node = graph.get_nodes_for_pin(
                 tuple(synth_tile['loc']), pin_name
@@ -890,6 +898,8 @@ WHERE
                 )
             else:
                 assert False, pin
+
+            pin_num += 1
 
 
 def get_switch_name(conn, graph, switch_name_map, switch_pkey):

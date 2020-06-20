@@ -115,6 +115,139 @@ def create_synth_io_tiles(complexblocklist_xml, tiles_xml, pb_name, is_input):
         }
     )
 
+def create_synth_io_tiles_pr(complexblocklist_xml, tiles_xml, pb_name):
+    """ Creates synthetic IO pad tiles used to connect ROI inputs and outputs to the routing network.
+    """
+    pb_xml = ET.SubElement(
+        complexblocklist_xml, 'pb_type', {
+            'name': pb_name,
+        }
+    )
+
+    tile_xml = ET.SubElement(tiles_xml, 'tile', {
+        'name': pb_name,
+    })
+
+    sub_tile_xml = ET.SubElement(tile_xml, 'sub_tile', {
+        'capacity': '100', 
+        'name': pb_name
+    })
+
+    equivalent_sites = ET.SubElement(sub_tile_xml, 'equivalent_sites')
+    site = ET.SubElement(equivalent_sites, 'site', {'pb_type': pb_name})
+
+    ET.SubElement(
+        sub_tile_xml, 'fc', {
+            'in_type': 'abs',
+            'in_val': '2',
+            'out_type': 'abs',
+            'out_val': '2',
+        }
+    )
+
+    interconnect_xml = ET.SubElement(pb_xml, 'interconnect')
+    
+    
+    in_blif_model = '.input'
+    in_pad_name = 'inpad'
+    in_port_type = 'output'
+    out_blif_model = '.output'
+    out_pad_name = 'outpad'
+    out_port_type = 'input'
+
+    ET.SubElement(pb_xml, in_port_type, {
+        'name': in_pad_name,
+        'num_pins': '1',
+    })
+
+    ET.SubElement(pb_xml, out_port_type, {
+        'name': out_pad_name,
+        'num_pins': '1',
+    })
+
+    ET.SubElement(
+        sub_tile_xml, in_port_type, {
+            'name': in_pad_name,
+            'num_pins': '1',
+        }
+    )
+
+    ET.SubElement(
+        sub_tile_xml, out_port_type, {
+            'name': out_pad_name,
+            'num_pins': '1',
+        }
+    )
+
+    in_port_pin = '{}.{}'.format(pb_name, in_pad_name)
+    in_pad_pin = '{}.{}'.format(in_pad_name, in_pad_name)
+    out_port_pin = '{}.{}'.format(pb_name, out_pad_name)
+    out_pad_pin = '{}.{}'.format(out_pad_name, out_pad_name)
+
+    ET.SubElement(site, 'direct', {'from': in_port_pin, 'to': in_port_pin})
+    ET.SubElement(site, 'direct', {'from': out_port_pin, 'to': out_port_pin})
+
+    out_input_name = out_port_pin
+    out_output_name = out_pad_pin
+    in_input_name = in_pad_pin
+    in_output_name = in_port_pin
+
+    in_pin_pb_type = ET.SubElement(
+        pb_xml, 'pb_type', {
+            'name': in_pad_name,
+            'blif_model': in_blif_model,
+            'num_pb': '1',
+        }
+    )
+    out_pin_pb_type = ET.SubElement(
+        pb_xml, 'pb_type', {
+            'name': out_pad_name,
+            'blif_model': out_blif_model,
+            'num_pb': '1',
+        }
+    )
+    ET.SubElement(
+        in_pin_pb_type, in_port_type, {
+            'name': in_pad_name,
+            'num_pins': '1',
+        }
+    )
+    ET.SubElement(
+        out_pin_pb_type, out_port_type, {
+            'name': out_pad_name,
+            'num_pins': '1',
+        }
+    )
+
+    in_direct_xml = ET.SubElement(
+        interconnect_xml, 'direct', {
+            'name': '{}_to_{}'.format(in_input_name, in_output_name),
+            'input': in_input_name,
+            'output': in_output_name,
+        }
+    )
+    out_direct_xml = ET.SubElement(
+        interconnect_xml, 'direct', {
+            'name': '{}_to_{}'.format(out_input_name, out_output_name),
+            'input': out_input_name,
+            'output': out_output_name,
+        }
+    )
+
+    ET.SubElement(
+        in_direct_xml, 'delay_constant', {
+            'max': '1e-11',
+            'in_port': in_input_name,
+            'out_port': in_output_name,
+        }
+    )
+    ET.SubElement(
+        out_direct_xml, 'delay_constant', {
+            'max': '1e-11',
+            'in_port': out_input_name,
+            'out_port': out_output_name,
+        }
+    )
 
 def create_synth_constant_tiles(
         model_xml, complexblocklist_xml, tiles_xml, pb_name, signal
@@ -549,6 +682,25 @@ def get_tiles(
 
         yield vpr_tile_type, grid_x, grid_y, meta_fun
 
+def add_synthetic_tiles_pr(model_xml, complexblocklist_xml, tiles_xml, need_io):
+    synth_tile_types = {}
+    if need_io:
+        create_synth_io_tiles_pr(
+            complexblocklist_xml, tiles_xml, 'SYN-IOPAD'
+        )
+        synth_tile_types['inout'] = 'SYN-IOPAD'
+
+    create_synth_constant_tiles(
+        model_xml, complexblocklist_xml, tiles_xml, 'SYN-VCC', 'VCC'
+    )
+    create_synth_constant_tiles(
+        model_xml, complexblocklist_xml, tiles_xml, 'SYN-GND', 'GND'
+    )
+
+    synth_tile_types['VCC'] = 'SYN-VCC'
+    synth_tile_types['GND'] = 'SYN-GND'
+
+    return synth_tile_types
 
 def add_synthetic_tiles(model_xml, complexblocklist_xml, tiles_xml, need_io):
     synth_tile_types = {}
@@ -666,6 +818,7 @@ def main():
         '--pin_assignments', required=True, type=argparse.FileType('r')
     )
     parser.add_argument('--use_roi', required=False)
+    parser.add_argument('--partition_region', required=False)
     parser.add_argument('--device', required=True)
     parser.add_argument('--synth_tiles', required=False)
     parser.add_argument('--connection_database', required=True)
@@ -779,6 +932,32 @@ def main():
             x2=x_max,
             y2=y_max,
         )
+    elif args.partition_region:
+        with open(args.partition_region) as f:
+            j = json.load(f)
+
+        with open(args.synth_tiles) as f:
+            synth_tiles = json.load(f)
+
+        roi = Roi(
+            db=db,
+            x1=j['info']['GRID_X_MIN'],
+            y1=j['info']['GRID_Y_MIN'],
+            x2=j['info']['GRID_X_MAX'],
+            y2=j['info']['GRID_Y_MAX'],
+        )
+
+        synth_tile_map = add_synthetic_tiles_pr(
+            model_xml, complexblocklist_xml, tiles_xml, need_io=True
+        )
+
+        for _, tile_info in synth_tiles['tiles'].items():
+            assert tuple(tile_info['loc']) not in synth_loc_map
+
+            vpr_tile_type = synth_tile_map['inout']
+
+            synth_loc_map[tuple(tile_info['loc'])] = vpr_tile_type
+
 
     with DatabaseCache(args.connection_database, read_only=True) as conn:
         c = conn.cursor()

@@ -253,6 +253,7 @@ class Tracks(object):
             conns = {}
             for idx, track in enumerate(self.tracks):
                 pin_dir = self.is_wire_adjacent_to_track(idx, coord)
+                print(coord, idx, pin_dir)
                 if pin_dir != Direction.NO_SIDE:
                     conns[pin_dir] = idx
 

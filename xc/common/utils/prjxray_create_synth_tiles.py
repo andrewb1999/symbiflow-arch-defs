@@ -167,11 +167,10 @@ SELECT pkey FROM wire WHERE node_pkey = ?
     min_manhattan_dist = 1000000
     for i in ins:
         for j in outs:
-            if wires_colinear(conn, i, j):
-                d = wire_manhattan_distance(conn, i, j)
-                if d < min_manhattan_dist:
-                    min_manhattan_dist = d
-                    correct_wire = j
+            d = wire_manhattan_distance(conn, i, j)
+            if d < min_manhattan_dist:
+                min_manhattan_dist = d
+                correct_wire = j
 
     cur.execute(
         """
@@ -290,36 +289,21 @@ def main():
                     'pins': [],
                     'loc': vpr_loc,
                 }
-            if not args.partition_region:
-                synth_tiles['tiles'][tile]['pins'].append(
-                    {
-                        'roi_name':
-                            port['name'].replace('[', '_').replace(']', '_'),
-                        'wire':
-                            wire,
-                        'pad':
-                            port['pin'],
-                        'port_type':
-                            port_type,
-                        'is_clock':
-                            is_clock,
-                    }
-                )
-            else:
-                synth_tiles['tiles'][tile]['pins'].append(
-                    {
-                        'roi_name':
-                            port['name'].replace('[', '_').replace(']', '_'),
-                        'wire':
-                            wire,
-                        'pad':
-                            '',
-                        'port_type':
-                            port_type,
-                        'is_clock':
-                            is_clock,
-                    }
-                )
+
+            synth_tiles['tiles'][tile]['pins'].append(
+                {
+                    'roi_name':
+                        port['name'].replace('[', '_').replace(']', '_'),
+                    'wire':
+                        wire,
+                    'pad':
+                        port['pin'],
+                    'port_type':
+                        port_type,
+                    'is_clock':
+                        is_clock,
+                }
+            )
 
         # Find two VBRK's in the corner of the fabric to use as the synthetic VCC/
         # GND source.

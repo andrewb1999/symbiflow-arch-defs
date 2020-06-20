@@ -484,7 +484,13 @@ class Graph(object):
     ):
         return '{}.{}[{}]'.format(tile_type, port_name, pin_idx)
 
+    def create_pin_name_from_tile_type_and_pin_stacked(
+            self, tile_type, tile_num, port_name, pin_idx=0
+    ):
+        return '{}[{}].{}[{}]'.format(tile_type, tile_num, port_name, pin_idx)
+
     def get_nodes_for_pin(self, loc, pin_name):
+        #import pdb; pdb.set_trace()
         block_type_id, pin_class_idx, pin_idx = self.pin_name_map[pin_name]
         grid_loc = self.loc_map[loc]
         assert grid_loc.block_type_id == block_type_id
