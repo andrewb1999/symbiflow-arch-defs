@@ -128,6 +128,11 @@ PCF constraint "{}" from line {} constraints pad {} which is not in available pa
             sys.exit(1)
 
         loc, is_output, iob = pad_map[pcf_constraint.pad]
+
+        if is_output == '1':
+            x, y, z = loc
+            loc = (x, y, z + 50)
+
         io_place.constrain_net(
             net_name=pcf_constraint.net,
             loc=loc,
