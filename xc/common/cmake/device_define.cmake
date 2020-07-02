@@ -175,7 +175,7 @@ endfunction()
 
 function(ADD_XC_DEVICE_DEFINE_TYPE)
   set(options)
-  set(oneValueArgs ARCH PART DEVICE ROI_DIR GRAPH_LIMIT)
+  set(oneValueArgs ARCH PART DEVICE ROI_DIR GRAPH_LIMIT OVERLAY_DIR)
   set(multiValueArgs TILE_TYPES PB_TYPES)
   cmake_parse_arguments(
     ADD_XC_DEVICE_DEFINE_TYPE
@@ -188,6 +188,7 @@ function(ADD_XC_DEVICE_DEFINE_TYPE)
   set(ARCH ${ADD_XC_DEVICE_DEFINE_TYPE_ARCH})
   set(DEVICE ${ADD_XC_DEVICE_DEFINE_TYPE_DEVICE})
   set(ROI_DIR ${ADD_XC_DEVICE_DEFINE_TYPE_ROI_DIR})
+  set(OVERLAY_DIR ${ADD_XC_DEVICE_DEFINE_TYPE_ROI_DIR})
   set(TILE_TYPES ${ADD_XC_DEVICE_DEFINE_TYPE_TILE_TYPES})
   get_target_property_required(FAMILY ${ARCH} FAMILY)
   get_target_property_required(DOC_PRJ ${ARCH} DOC_PRJ)
@@ -204,6 +205,9 @@ function(ADD_XC_DEVICE_DEFINE_TYPE)
   elseif(NOT "${ADD_XC_DEVICE_DEFINE_TYPE_GRAPH_LIMIT}" STREQUAL "")
     set(DEVICE_TYPE ${DEVICE}-virt)
     set(ROI_ARGS GRAPH_LIMIT ${ADD_XC_DEVICE_DEFINE_TYPE_GRAPH_LIMIT})
+  elseif(NOT "${OVERLAY_DIR}" STREQUAL "")
+    set(DEVICE_TYPE ${DEVICE}-virt)
+    set(ROI_ARGS USE_OVERLAY ${OVERLAY_DIR})
   else()
     set(DEVICE_TYPE ${DEVICE}-virt)
     set(ROI_ARGS "")
@@ -287,10 +291,25 @@ function(ADD_XC_DEVICE_DEFINE_TYPE)
       )
   endif()
 
+  if(NOT "${OVERLAY_DIR}" STREQUAL "")
+    set_target_properties(
+      ${DEVICE_TYPE}
+      PROPERTIES
+      USE_OVERLAY TRUE
+      OVERLAY_DIR ${OVERLAY_DIR}
+      SYNTH_TILES ${CMAKE_CURRENT_SOURCE_DIR}/synth_tiles.json
+      )
+  else()
+    set_target_properties(
+      ${DEVICE_TYPE}
+      PROPERTIES
+      USE_OVERLAY FALSE
+      )
+  endif()
 endfunction()
 
 function(ADD_XC_DEVICE_DEFINE)
-  set(options USE_ROI)
+  set(options USE_ROI USE_OVERLAY)
   set(oneValueArgs ARCH PART)
   set(multiValueArgs DEVICES)
   cmake_parse_arguments(
@@ -302,6 +321,7 @@ function(ADD_XC_DEVICE_DEFINE)
    )
 
   set(USE_ROI ${ADD_XC_DEVICE_DEFINE_USE_ROI})
+  set(USE_OVERLAY ${ADD_XC_DEVICE_DEFINE_USE_OVERLAY})
   set(ARCH ${ADD_XC_DEVICE_DEFINE_ARCH})
   set(PART ${ADD_XC_DEVICE_DEFINE_PART})
   set(DEVICES ${ADD_XC_DEVICE_DEFINE_DEVICES})
@@ -327,7 +347,7 @@ function(ADD_XC_DEVICE_DEFINE)
     set(DEVICE_RR_PATCH_DEPS "")
     append_file_dependency(DEVICE_RR_PATCH_DEPS ${CHANNELS_DB})
 
-    if(${USE_ROI})
+    if(${USE_ROI} OR ${USE_OVERLAY})
         # SYNTH_TILES used in ROI.
         get_target_property_required(SYNTH_TILES ${DEVICE_TYPE} SYNTH_TILES)
         get_file_location(SYNTH_TILES_LOCATION ${SYNTH_TILES})
