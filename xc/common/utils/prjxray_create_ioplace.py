@@ -144,6 +144,11 @@ Constrained pad {} is not in available pad map:\n{}""".format(
             sys.exit(1)
 
         loc, is_output, iob = pad_map[pad]
+
+        if is_output == '1':
+            x, y, z = loc
+            loc = (x, y, z + 50)
+
         io_place.constrain_net(
             net_name=net,
             loc=loc,
