@@ -9,6 +9,13 @@ import vpr_io_place
 from lib.parse_pcf import parse_simple_pcf
 
 
+def get_synth_tile_from_pad(synth_tiles, pad):
+    for _, tile in synth_tiles['tiles'].items():
+        for pin in tile['pins']:
+            if pin['pad'] == pad:
+                return tile
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Convert a PCF file into a VPR io.place file.'
@@ -43,6 +50,12 @@ def main():
         type=argparse.FileType('w'),
         default=sys.stdout,
         help='The output io.place file'
+    )
+    parser.add_argument(
+        "--synth_tiles",
+        type=str,
+        required=False,
+        help='Synth tiles json file'
     )
     parser.add_argument(
         "--iostandard_defs", help='(optional) Output IOSTANDARD def file'
@@ -101,6 +114,10 @@ def main():
         with open(fname, "r") as fp:
             iostandard_constraints = json.load(fp)
 
+    if args.synth_tiles:
+        with open(args.synth_tiles) as f:
+            synth_tiles = json.load(f)
+
     # Constrain nets
     for pcf_constraint in parse_simple_pcf(args.pcf):
         if not io_place.is_net(pcf_constraint.net):
@@ -129,9 +146,19 @@ PCF constraint "{}" from line {} constraints pad {} which is not in available pa
 
         loc, is_output, iob = pad_map[pcf_constraint.pad]
 
-        if is_output == '1':
-            x, y, z = loc
-            loc = (x, y, z + 50)
+        if args.synth_tiles:
+            tile = get_synth_tile_from_pad(synth_tiles, pcf_constraint.pad)
+            if tile:
+                pin_list = list(
+                    filter(
+                        lambda p: p['pad'] == pcf_constraint.pad, tile['pins']
+                    )
+                )
+                assert len(pin_list) == 1
+                pin, = pin_list
+                z_loc = pin['z_loc']
+                x, y, _ = loc
+                loc = (x, y, z_loc)
 
         io_place.constrain_net(
             net_name=pcf_constraint.net,
