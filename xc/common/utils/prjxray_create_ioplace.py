@@ -10,6 +10,9 @@ from lib.parse_pcf import parse_simple_pcf
 
 
 def get_synth_tile_from_pad(synth_tiles, pad):
+    """ Gets synthetic IO tile containing pad.
+        Will return None if pad is not associated with any synth tile.
+    """
     for _, tile in synth_tiles['tiles'].items():
         for pin in tile['pins']:
             if pin['pad'] == pad:
@@ -165,6 +168,8 @@ Constrained pad {} is not in available pad map:\n{}""".format(
 
         if args.synth_tiles:
             tile = get_synth_tile_from_pad(synth_tiles, pcf_constraint.pad)
+            # If tile is None, the pcf_constraint is not associated with a synth tile
+            # Occurs in overlays or other architectures with a mix of synth and real IOs
             if tile:
                 pin_list = list(
                     filter(
