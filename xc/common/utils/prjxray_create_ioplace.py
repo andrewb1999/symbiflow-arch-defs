@@ -144,6 +144,25 @@ Conflicting pad constraints for net {}:\n{}\n{}""".format(
 
     # Constrain nets
     for net, pad in net_to_pad:
+        synth_tile_pad = False
+        if args.synth_tiles:
+            tile = get_synth_tile_from_pad(synth_tiles, pad)
+            # If tile is None, the pcf_constraint is not associated with a synth tile
+            # Occurs in overlays or other architectures with a mix of synth and real IOs
+            if tile:
+                synth_tile_pad = True
+                pin_list = list(
+                    filter(
+                        lambda p: p['pad'] == pad, tile['pins']
+                    )
+                )
+                assert len(pin_list) == 1
+                pin, = pin_list
+                z_loc = pin['z_loc']
+                loc = tile['loc']
+                x, y = loc
+                loc = (x, y, z_loc)
+
         if not io_place.is_net(net):
             print(
                 """ERROR:
@@ -154,7 +173,7 @@ Constrained net {} is not in available netlist:\n{}""".format(
             )
             sys.exit(1)
 
-        if pad not in pad_map:
+        if pad not in pad_map and not synth_tile_pad:
             print(
                 """ERROR:
 Constrained pad {} is not in available pad map:\n{}""".format(
@@ -164,41 +183,26 @@ Constrained pad {} is not in available pad map:\n{}""".format(
             )
             sys.exit(1)
 
-        loc, is_output, iob = pad_map[pad]
-
-        if args.synth_tiles:
-            tile = get_synth_tile_from_pad(synth_tiles, pcf_constraint.pad)
-            # If tile is None, the pcf_constraint is not associated with a synth tile
-            # Occurs in overlays or other architectures with a mix of synth and real IOs
-            if tile:
-                pin_list = list(
-                    filter(
-                        lambda p: p['pad'] == pcf_constraint.pad, tile['pins']
-                    )
-                )
-                assert len(pin_list) == 1
-                pin, = pin_list
-                z_loc = pin['z_loc']
-                x, y, _ = loc
-                loc = (x, y, z_loc)
-
+        if not synth_tile_pad:
+            loc, is_output, iob = pad_map[pad]
+            if pad in iostandard_constraints:
+                iostandard_defs[iob] = iostandard_constraints[pad]
+            else:
+                if is_output:
+                    iostandard_defs[iob] = {
+                        'DRIVE': args.drive,
+                        'IOSTANDARD': args.iostandard,
+                    }
+                else:
+                    iostandard_defs[iob] = {
+                        'IOSTANDARD': args.iostandard,
+                    }
+            
         io_place.constrain_net(
             net_name=net,
             loc=loc,
             comment="set_property LOC {} [get_ports {{{}}}]".format(pad, net)
         )
-        if pad in iostandard_constraints:
-            iostandard_defs[iob] = iostandard_constraints[pad]
-        else:
-            if is_output:
-                iostandard_defs[iob] = {
-                    'DRIVE': args.drive,
-                    'IOSTANDARD': args.iostandard,
-                }
-            else:
-                iostandard_defs[iob] = {
-                    'IOSTANDARD': args.iostandard,
-                }
 
     io_place.output_io_place(args.output)
 
