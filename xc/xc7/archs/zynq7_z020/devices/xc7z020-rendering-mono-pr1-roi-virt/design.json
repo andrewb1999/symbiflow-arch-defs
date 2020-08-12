@@ -11,8 +11,8 @@
         {
             "name": "ap_clk",
             "type": "clk",
-            "node": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_BUFGCTRL0_O",
-            "wire": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_BUFGCTRL0_O",
+            "node": "CLK_BUFG_REBUF_X87Y65/CLK_BUFG_REBUF_R_CK_GCLK16_BOT",
+            "wire": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_CK_GCLK16",
             "pin": "SYN0"
         },
         {
