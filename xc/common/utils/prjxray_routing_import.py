@@ -33,6 +33,7 @@ from lib.connection_database import get_wire_pkey, get_track_model
 import lib.rr_graph_capnp.graph2 as capnp_graph2
 from prjxray_constant_site_pins import feature_when_routed
 from prjxray_tile_import import remove_vpr_tile_prefix
+from prjxray_db_cache import DatabaseCache
 import simplejson as json
 from lib import progressbar_utils
 import datetime
@@ -1375,8 +1376,7 @@ def main():
         synth_tiles_const = find_constant_network(graph)
         synth_tiles['tiles'].update(synth_tiles_const['tiles'])
 
-    with sqlite3.connect("file:{}?mode=ro".format(args.connection_database),
-                         uri=True) as conn:
+    with DatabaseCache(args.connection_database, read_only=True) as conn:
 
         populate_bufg_rebuf_map(conn)
 

@@ -11,8 +11,8 @@
         {
             "name": "ap_clk",
             "type": "clk",
-            "node": "CLK_BUFG_REBUF_X87Y65/CLK_BUFG_REBUF_R_CK_GCLK16_BOT",
-            "wire": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_CK_GCLK16",
+            "node": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_BUFGCTRL0_O",
+            "wire": "CLK_BUFG_TOP_R_X87Y53/CLK_BUFG_BUFGCTRL0_O",
             "pin": "SYN0"
         },
         {
@@ -48,7 +48,7 @@
         {
             "name": "Input_1_V_V[4]",
             "type": "in",
-            "node": "INT_L_X34Y42/EL1BEG2",
+            "node": "INT_R_X33Y77/EE4BEG2",
             "pin": "SYN6"
         },
         {
@@ -72,7 +72,7 @@
         {
             "name": "Input_1_V_V[8]",
             "type": "in",
-            "node": "INT_L_X34Y43/EL1BEG_N3",
+            "node": "INT_L_X34Y79/EE4BEG2",
             "pin": "SYN10"
         },
         {
@@ -96,7 +96,7 @@
         {
             "name": "Input_1_V_V[12]",
             "type": "in",
-            "node": "INT_L_X34Y46/EL1BEG1",
+            "node": "INT_L_X34Y80/EE4BEG2",
             "pin": "SYN14"
         },
         {
