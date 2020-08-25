@@ -85,7 +85,7 @@ SELECT grid_x, grid_y FROM tile WHERE pkey = (SELECT tile_pkey FROM wire WHERE p
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def find_wire_from_node(conn, g, roi, node_name, overlay=False):
+def find_wire_from_node(conn, g, roi, node_name, overlay=False, side=None):
     """
     Finds a pair on wires in the given node such that:
     1. One wire is inside the roi and the other is outside
@@ -121,12 +121,54 @@ SELECT pkey FROM wire WHERE node_pkey = ?
     ins = {i for i, v in in_outs.items() if v}
     outs = {i for i, v in in_outs.items() if not v}
     min_manhattan_dist = 1000000
+    wire_min_dist_map = {}
     for i in ins:
         for j in outs:
             d = wire_manhattan_distance(conn, i, j)
+            if (j not in wire_min_dist_map) or d < wire_min_dist_map[j]:
+                wire_min_dist_map[j] = d
+
             if d < min_manhattan_dist:
                 min_manhattan_dist = d
-                correct_wire = j
+
+    usable_wires = {k:v for k,v in wire_min_dist_map.items() if v == min_manhattan_dist}
+    
+    assert len(usable_wires) > 0, node_name
+    if len(usable_wires) > 1 and side != None:
+        x1 = roi.x1
+        x2 = roi.x2
+        y1 = roi.y1
+        y2 = roi.y2
+        for wire_pkey in usable_wires:
+            cur.execute("""
+SELECT grid_x, grid_y FROM tile WHERE pkey = (SELECT tile_pkey FROM wire WHERE pkey = ?)
+""", (wire_pkey, )
+            )
+            x, y = cur.fetchone()
+            if not overlay:
+                if x <= x1:
+                    usable_wires[wire_pkey] = 'left'
+                elif x >= x2:
+                    usable_wires[wire_pkey] = 'right'
+                elif y <= y1:
+                    usable_wires[wire_pkey] = 'top'
+                elif y >= y2:
+                    usable_wires[wire_pkey] = 'bottom'
+            else:
+                if x >= x1 and x <= x1 + 1:
+                    usable_wires[wire_pkey] = 'left'
+                elif x <= x2 and x >= x2 - 1:
+                    usable_wires[wire_pkey] = 'right'
+                elif y >= y1 and y <= y1 + 1:
+                    usable_wires[wire_pkey] = 'top'
+                elif y <= y2 and y >= y2 - 1:
+                    usable_wires[wire_pkey] = 'bottom'
+        
+        usable_wires = {k:v for k,v in usable_wires.items() if v == side}
+        assert len(usable_wires) == 1, node_name
+        correct_wire = list(usable_wires.keys())[0]
+    else:
+        correct_wire = list(usable_wires.keys())[0]
 
     cur.execute(
         """
@@ -217,7 +259,7 @@ def main():
 
             tile_pin_count = dict()
             num_synth_tiles = 0
-            for port in sorted(j["ports"], key=lambda i: i['name']):
+            for port in sorted(j["ports"], key=lambda i: (i['type'], i['name'])):
                 if port['type'] == 'out':
                     port_type = 'input' if not args.overlay else 'output'
                     is_clock = False
@@ -231,8 +273,11 @@ def main():
                     assert False, port
 
                 if 'wire' not in port:
+                    side = None
+                    if 'side' in port:
+                        side = port['side']
                     tile, wire = find_wire_from_node(
-                        conn, g, roi, port['node'], overlay=bool(args.overlay)
+                        conn, g, roi, port['node'], overlay=bool(args.overlay), side=side
                     )
                 else:
                     tile, wire = port['wire'].split('/')
@@ -251,6 +296,22 @@ def main():
 
                 vpr_loc = map_tile_to_vpr_coord(conn, tile)
 
+                if 'other_ports' in port:
+                    other_ports = port['other_ports']
+                    other_wires = list()
+                    for n in other_ports:
+                        node = n['node']
+                        if 'wire' in port:
+                            other_wires.append(port['wire'])
+                        else:
+                            side = None
+                            if 'side' in port:
+                                side = port['side']
+                            t, w = find_wire_from_node(
+                                conn, g, roi, node, overlay=bool(args.overlay), side=side
+                            )
+                            other_wires.append("{}/{}".format(t, w))
+
                 if tile not in synth_tiles['tiles']:
                     tile_name = 'SYN-IOPAD-{}'.format(num_synth_tiles)
                     synth_tiles['tiles'][tile] = {
@@ -261,22 +322,87 @@ def main():
                     num_synth_tiles += 1
                     tile_pin_count[tile] = 0
 
-                synth_tiles['tiles'][tile]['pins'].append(
-                    {
-                        'roi_name':
-                            port['name'].replace('[', '_').replace(']', '_'),
-                        'wire':
-                            wire,
-                        'pad':
-                            port['pin'],
-                        'port_type':
-                            port_type,
-                        'is_clock':
-                            is_clock,
-                        'z_loc':
-                            tile_pin_count[tile],
-                    }
-                )
+                if 'other_ports' in port:
+                    other_wires = None
+                    other_ports = None
+                    other_ports = port['other_ports']
+                    other_wires = list()
+                    for n in other_ports:
+                        node = n['node']
+                        if 'wire' in port:
+                            other_wires.append(port['wire'])
+                        else:
+                            side = None
+                            if 'side' in port:
+                                side = port['side']
+                            t, w = find_wire_from_node(
+                                conn, g, roi, node, overlay=bool(args.overlay), side=side
+                            )
+                            other_wires.append("{}/{}".format(t, w))
+
+                    for other_wire in other_wires:
+                        t, w = other_wire.split('/')
+                        if t not in synth_tiles['tiles']:
+                            tile_name = 'SYN-IOPAD-{}'.format(num_synth_tiles)
+                            vpr_loc = map_tile_to_vpr_coord(conn, t)
+                            synth_tiles['tiles'][t] = {
+                                'pins': [],
+                                'loc': vpr_loc,
+                                'tile_name': tile_name,
+                            }
+                            num_synth_tiles += 1
+                            tile_pin_count[t] = 0
+
+                        synth_tiles['tiles'][t]['pins'].append(
+                            {
+                                'wire':
+                                    w,
+                                'port_type':
+                                    port_type,
+                                'is_clock':
+                                    is_clock,
+                                'z_loc':
+                                    tile_pin_count[tile],
+                            }
+                        )
+                        tile_pin_count[t] += 1
+
+                    synth_tiles['tiles'][tile]['pins'].append(
+                        {
+                            'roi_name':
+                                port['name'].replace('[', '_').replace(']', '_'),
+                            'wire':
+                                wire,
+                            'other_wires':
+                                other_wires,
+                            'pad':
+                                port['pin'],
+                            'port_type':
+                                port_type,
+                            'is_clock':
+                                is_clock,
+                            'z_loc':
+                                tile_pin_count[tile],
+                        }
+                    )
+
+                else:
+                    synth_tiles['tiles'][tile]['pins'].append(
+                        {
+                            'roi_name':
+                                port['name'].replace('[', '_').replace(']', '_'),
+                            'wire':
+                                wire,
+                            'pad':
+                                port['pin'],
+                            'port_type':
+                                port_type,
+                            'is_clock':
+                                is_clock,
+                            'z_loc':
+                                tile_pin_count[tile],
+                        }
+                    )
 
                 tile_pin_count[tile] += 1
 

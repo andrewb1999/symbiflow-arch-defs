@@ -1,0 +1,31 @@
+{
+    "info":
+        {
+        "name": "pr1",
+        "GRID_X_MAX": 174,
+        "GRID_X_MIN": 91,
+        "GRID_Y_MAX": 106,
+        "GRID_Y_MIN": 2
+        },
+    "ports": [
+        {
+            "name": "clk1",
+            "type": "clk",
+            "node": "CLK_HROW_TOP_R_X87Y78/CLK_HROW_CK_BUFHCLK_R0",
+            "side": "left",
+            "other_ports": [
+                {
+                    "node": "CLK_HROW_TOP_R_X87Y130/CLK_HROW_CK_BUFHCLK_R0",
+                    "side": "left" 
+                }
+            ],
+            "pin": "SYN0"
+        },
+        {
+            "name": "out1",
+            "type": "out",
+            "node": "INT_L_X38Y58/WW4BEG2",
+            "pin": "SYN1"
+        }
+    ]
+}

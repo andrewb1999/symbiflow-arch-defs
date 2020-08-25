@@ -39,6 +39,7 @@ import datetime
 import re
 import functools
 import pickle
+from prjxray_db_cache import DatabaseCache
 
 import sqlite3
 
@@ -819,7 +820,7 @@ def create_track_rr_graph(
     print('original {} final {}'.format(num_channels, len(alive_tracks)))
 
 
-def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles):
+def add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles, overlay):
     cur = conn.cursor()
     delayless_switch = graph.get_switch_id('__vpr_delayless_switch__')
 
@@ -897,11 +898,11 @@ WHERE
             assert track_node in node_mapping, (track_node, track_pkey)
             if wire == 'inpad' and num_inpad > 1:
                 pin_name = graph.create_pin_name_from_tile_type_sub_tile_num_and_pin(
-                    tile_type, pin['z_loc'], wire
+                    tile_type, pin['z_loc'] if not overlay else (pin['z_loc'] - num_outpad), wire
                 )
             elif wire == 'outpad' and num_outpad > 1:
                 pin_name = graph.create_pin_name_from_tile_type_sub_tile_num_and_pin(
-                    tile_type, (pin['z_loc'] - num_inpad), wire
+                    tile_type, (pin['z_loc'] - num_inpad) if not overlay else pin['z_loc'], wire
                 )
             else:
                 pin_name = graph.create_pin_name_from_tile_type_and_pin(
@@ -929,6 +930,74 @@ WHERE
             else:
                 assert False, pin
 
+            if 'other_wires' in pin:
+                other_wires = pin['other_wires']
+                for wire in other_wires:
+                    t, w = wire.split('/')
+                    wire_pkey = get_wire_pkey(conn, t, w)
+                    cur.execute(
+                        """
+SELECT
+  track_pkey
+FROM
+  node
+WHERE
+  pkey = (
+    SELECT
+      node_pkey
+    FROM
+      wire
+    WHERE
+      pkey = ?
+  );""", (wire_pkey, )
+                    )
+                    track_pkey,  = cur.fetchone()
+                    cur.execute(
+                        """
+SELECT
+  grid_x, grid_y
+FROM
+  tile
+WHERE
+  pkey = (
+    SELECT
+        tile_pkey
+    FROM
+        wire
+    WHERE
+        pkey = ?
+    );""", (wire_pkey, )
+                    )
+                    grid_loc = cur.fetchone()
+                    assert track_pkey is not None, (
+                        t, w, wire_pkey
+                    )
+                    tracks_model, track_nodes = get_track_model(conn, track_pkey)
+
+                    option = list(
+                        tracks_model.get_tracks_for_wire_at_coord(
+                            grid_loc
+                        ).values()
+                    )
+
+                    track_node = track_nodes[option[0]]
+                    assert track_node in node_mapping, (track_node, track_pkey)
+                    if pin['port_type'] == 'input':
+                        graph.add_edge(
+                            src_node=node_mapping[track_node],
+                            sink_node=pin_node[0][0],
+                            switch_id=delayless_switch,
+                            name='synth_{}_{}'.format(t, w),
+                        )
+                    elif pin['port_type'] == 'output':
+                        graph.add_edge(
+                            src_node=pin_node[0][0],
+                            sink_node=node_mapping[track_node],
+                            switch_id=delayless_switch,
+                            name='synth_{}_{}'.format(t, w),
+                        )
+                    else:
+                        assert False, pin
 
 def get_switch_name(conn, graph, switch_name_map, switch_pkey):
     assert switch_pkey is not None
@@ -1372,8 +1441,7 @@ def main():
         synth_tiles_const = find_constant_network(graph)
         synth_tiles['tiles'].update(synth_tiles_const['tiles'])
 
-    with sqlite3.connect("file:{}?mode=ro".format(args.connection_database),
-                         uri=True) as conn:
+    with DatabaseCache(args.connection_database, read_only=True) as conn:
 
         populate_bufg_rebuf_map(conn)
 
@@ -1440,7 +1508,7 @@ FROM
         # Set of (src, sink, switch_id) tuples that pip edges have been sent to
         # VPR.  VPR cannot handle duplicate paths with the same switch id.
         print('{} Adding synthetic edges'.format(now()))
-        add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles)
+        add_synthetic_edges(conn, graph, node_mapping, grid, synth_tiles, args.overlay)
 
         print('{} Creating channels.'.format(now()))
         channels_obj = create_channels(conn)
