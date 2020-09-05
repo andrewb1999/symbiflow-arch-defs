@@ -1,0 +1,385 @@
+{
+    "info":
+        {
+        "name": "pr2",
+        "GRID_X_MAX": 174,
+        "GRID_X_MIN": 91,
+        "GRID_Y_MAX": 155,
+        "GRID_Y_MIN": 105
+        },
+    "ports": [
+        {
+            "name": "clk",
+            "type": "clk",
+            "node": "CLK_HROW_BOT_R_X87Y26/CLK_HROW_CK_BUFHCLK_R8",
+            "wire": "HCLK_L_X90Y26/HCLK_CK_BUFHCLK8",
+            "pin": "SYN0"
+        },
+        {
+            "name": "ap_rst",
+            "type": "in",
+            "node": "INT_L_X34Y45/EL1BEG1",
+            "pin": "SYN2"
+        },
+        {
+            "name": "Input_1_V_V[0]",
+            "type": "in",
+            "node": "INT_R_X57Y54/SS6BEG3",
+            "pin": "SYN3"
+        },
+        {
+            "name": "Input_1_V_V[1]",
+            "type": "in",
+            "node": "INT_R_X55Y52/SS6BEG1",
+            "pin": "SYN4"
+        },
+        {
+            "name": "Input_1_V_V[2]",
+            "type": "in",
+            "node": "INT_R_X57Y52/SW6BEG1",
+            "pin": "SYN5"
+        },
+        {
+            "name": "Input_1_V_V[3]",
+            "type": "in",
+            "node": "INT_R_X55Y52/SS6BEG2",
+            "pin": "SYN6"
+        },
+        {
+            "name": "Input_1_V_V[4]",
+            "type": "in",
+            "node": "INT_R_X55Y52/SS6BEG0",
+            "pin": "SYN7"
+        },
+        {
+            "name": "Input_1_V_V[5]",
+            "type": "in",
+            "node": "INT_L_X54Y51/SS2BEG1",
+            "pin": "SYN8"
+        },
+        {
+            "name": "Input_1_V_V[6]",
+            "type": "in",
+            "node": "INT_R_X55Y53/SS6BEG0",
+            "pin": "SYN9"
+        },
+        {
+            "name": "Input_1_V_V[7]",
+            "type": "in",
+            "node": "INT_R_X55Y53/SS6BEG1",
+            "pin": "SYN10"
+        },
+        {
+            "name": "Input_1_V_V[8]",
+            "type": "in",
+            "node": "INT_R_X57Y50/SS6BEG1",
+            "pin": "SYN11"
+        },
+        {
+            "name": "Input_1_V_V[9]",
+            "type": "in",
+            "node": "INT_R_X59Y50/SS6BEG2",
+            "pin": "SYN12"
+        },
+        {
+            "name": "Input_1_V_V[10]",
+            "type": "in",
+            "node": "INT_R_X57Y53/SS6BEG2",
+            "pin": "SYN13"
+        },
+        {
+            "name": "Input_1_V_V[11]",
+            "type": "in",
+            "node": "INT_R_X57Y53/SW6BEG3",
+            "pin": "SYN14"
+        },
+        {
+            "name": "Input_1_V_V[12]",
+            "type": "in",
+            "node": "INT_R_X55Y50/SS6BEG0",
+            "pin": "SYN15"
+        },
+        {
+            "name": "Input_1_V_V[13]",
+            "type": "in",
+            "node": "INT_R_X53Y54/SS6BEG0",
+            "pin": "SYN16"
+        },
+        {
+            "name": "Input_1_V_V[14]",
+            "type": "in",
+            "node": "INT_R_X57Y51/SS2BEG0",
+            "pin": "SYN17"
+        },
+        {
+            "name": "Input_1_V_V[15]",
+            "type": "in",
+            "node": "INT_R_X53Y50/SE2BEG1",
+            "pin": "SYN18"
+        },
+        {
+            "name": "Input_1_V_V[16]",
+            "type": "in",
+            "node": "INT_R_X57Y52/SS6BEG0",
+            "pin": "SYN19"
+        },
+        {
+            "name": "Input_1_V_V[17]",
+            "type": "in",
+            "node": "INT_R_X57Y52/SS6BEG2",
+            "pin": "SYN20"
+        },
+        {
+            "name": "Input_1_V_V[18]",
+            "type": "in",
+            "node": "INT_R_X51Y50/SW6BEG0",
+            "pin": "SYN21"
+        },
+        {
+            "name": "Input_1_V_V[19]",
+            "type": "in",
+            "node": "INT_R_X55Y54/SS6BEG2",
+            "pin": "SYN22"
+        },
+        {
+            "name": "Input_1_V_V[20]",
+            "type": "in",
+            "node": "INT_R_X55Y54/SS6BEG0",
+            "pin": "SYN23"
+        },
+        {
+            "name": "Input_1_V_V[21]",
+            "type": "in",
+            "node": "INT_L_X50Y50/SS6BEG2",
+            "pin": "SYN24"
+        },
+        {
+            "name": "Input_1_V_V[22]",
+            "type": "in",
+            "node": "INT_L_X52Y55/SS6BEG0",
+            "pin": "SYN25"
+        },
+        {
+            "name": "Input_1_V_V[23]",
+            "type": "in",
+            "node": "INT_R_X51Y54/SS6BEG2",
+            "pin": "SYN26"
+        },
+        {
+            "name": "Output_1_V_V[0]",
+            "type": "out",
+            "node": "INT_L_X38Y43/WW4BEG0",
+            "pin": "SYN35"
+        },
+        {
+            "name": "Output_1_V_V[1]",
+            "type": "out",
+            "node": "INT_R_X37Y40/WW4BEG1",
+            "pin": "SYN36"
+        },
+        {
+            "name": "Output_1_V_V[2]",
+            "type": "out",
+            "node": "INT_R_X35Y42/SW2BEG1",
+            "pin": "SYN37"
+        },
+        {
+            "name": "Output_1_V_V[3]",
+            "type": "out",
+            "node": "INT_R_X35Y42/WW4BEG2",
+            "pin": "SYN38"
+        },
+        {
+            "name": "Output_1_V_V[4]",
+            "type": "out",
+            "node": "INT_R_X35Y39/WW4BEG3",
+            "pin": "SYN39"
+        },
+        {
+            "name": "Output_1_V_V[5]",
+            "type": "out",
+            "node": "INT_R_X35Y40/WW4BEG0",
+            "pin": "SYN40"
+        },
+        {
+            "name": "Output_1_V_V[6]",
+            "type": "out",
+            "node": "INT_R_X37Y39/WW4BEG0",
+            "pin": "SYN41"
+        },
+        {
+            "name": "Output_1_V_V[7]",
+            "type": "out",
+            "node": "INT_R_X35Y39/WW4BEG2",
+            "pin": "SYN42"
+        },
+        {
+            "name": "Output_1_V_V[8]",
+            "type": "out",
+            "node": "INT_R_X35Y42/WW4BEG3",
+            "pin": "SYN43"
+        },
+        {
+            "name": "Output_1_V_V[9]",
+            "type": "out",
+            "node": "INT_R_X35Y40/WW4BEG3",
+            "pin": "SYN44"
+        },
+        {
+            "name": "Output_1_V_V[10]",
+            "type": "out",
+            "node": "INT_R_X35Y41/WW4BEG0",
+            "pin": "SYN45"
+        },
+        {
+            "name": "Output_1_V_V[11]",
+            "type": "out",
+            "node": "INT_R_X35Y41/SW2BEG1",
+            "pin": "SYN46"
+        },
+        {
+            "name": "Output_1_V_V[12]",
+            "type": "out",
+            "node": "INT_R_X35Y40/WW4BEG1",
+            "pin": "SYN47"
+        },
+        {
+            "name": "Output_1_V_V[13]",
+            "type": "out",
+            "node": "INT_R_X35Y43/SW2BEG0",
+            "pin": "SYN48"
+        },
+        {
+            "name": "Output_1_V_V[14]",
+            "type": "out",
+            "node": "INT_R_X37Y41/WW4BEG1",
+            "pin": "SYN49"
+        },
+        {
+            "name": "Output_1_V_V[15]",
+            "type": "out",
+            "node": "INT_R_X35Y39/NW2BEG0",
+            "pin": "SYN50"
+        },
+        {
+            "name": "Output_1_V_V[16]",
+            "type": "out",
+            "node": "INT_L_X38Y43/WW4BEG1",
+            "pin": "SYN51"
+        },
+        {
+            "name": "Output_1_V_V[17]",
+            "type": "out",
+            "node": "INT_R_X37Y40/WW4BEG0",
+            "pin": "SYN52"
+        },
+        {
+            "name": "Output_1_V_V[18]",
+            "type": "out",
+            "node": "INT_R_X35Y42/WW4BEG0",
+            "pin": "SYN53"
+        },
+        {
+            "name": "Output_1_V_V[19]",
+            "type": "out",
+            "node": "INT_L_X38Y43/WW4BEG2",
+            "pin": "SYN54"
+        },
+        {
+            "name": "Output_1_V_V[20]",
+            "type": "out",
+            "node": "INT_R_X37Y43/WW4BEG1",
+            "pin": "SYN55"
+        },
+        {
+            "name": "Output_1_V_V[21]",
+            "type": "out",
+            "node": "INT_R_X37Y40/WW4BEG2",
+            "pin": "SYN56"
+        },
+        {
+            "name": "Output_1_V_V[22]",
+            "type": "out",
+            "node": "INT_R_X35Y39/WW2BEG1",
+            "pin": "SYN57"
+        },
+        {
+            "name": "Output_1_V_V[23]",
+            "type": "out",
+            "node": "INT_R_X35Y41/WW4BEG2",
+            "pin": "SYN58"
+        },
+        {
+            "name": "Output_1_V_V[24]",
+            "type": "out",
+            "node": "INT_R_X35Y43/WW4BEG1",
+            "pin": "SYN59"
+        },
+        {
+            "name": "Output_1_V_V[25]",
+            "type": "out",
+            "node": "INT_R_X37Y40/WW4BEG3",
+            "pin": "SYN60"
+        },
+        {
+            "name": "Output_1_V_V[26]",
+            "type": "out",
+            "node": "INT_R_X35Y41/WW4BEG3",
+            "pin": "SYN61"
+        },
+        {
+            "name": "Output_1_V_V[27]",
+            "type": "out",
+            "node": "INT_R_X37Y43/WW4BEG0",
+            "pin": "SYN62"
+        },
+        {
+            "name": "Output_1_V_V[28]",
+            "type": "out",
+            "node": "INT_R_X37Y44/WW4BEG1",
+            "pin": "SYN63"
+        },
+        {
+            "name": "Output_1_V_V[29]",
+            "type": "out",
+            "node": "INT_R_X37Y43/WW4BEG2",
+            "pin": "SYN64"
+        },
+        {
+            "name": "Output_1_V_V[30]",
+            "type": "out",
+            "node": "INT_R_X37Y43/WW4BEG3",
+            "pin": "SYN65"
+        },
+        {
+            "name": "Output_1_V_V[31]",
+            "type": "out",
+            "node": "INT_R_X35Y41/NW2BEG2",
+            "pin": "SYN66"
+        },
+        {
+            "name": "Input_1_V_V_ap_vld",
+            "type": "in",
+            "node": "INT_R_X53Y52/SS6BEG0",
+            "pin": "SYN67"
+        },
+        {
+            "name": "Output_1_V_V_ap_ack",
+            "type": "in",
+            "node": "INT_L_X34Y45/EE4BEG3",
+            "pin": "SYN68"
+        },
+        {
+            "name": "Input_1_V_V_ap_ack",
+            "type": "out",
+            "node": "INT_R_X55Y46/NN6BEG3",
+            "pin": "SYN69"
+        },
+        {
+            "name": "Output_1_V_V_ap_vld",
+            "type": "out",
+            "node": "INT_R_X35Y44/WW4BEG0",
+            "pin": "SYN70"
+        }
+    ]
+}

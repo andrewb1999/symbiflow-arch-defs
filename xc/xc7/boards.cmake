@@ -150,6 +150,30 @@ add_xc_board(
   PROG_CMD "${OPENOCD} -f ${PRJXRAY_DIR}/utils/openocd/board-digilent-pynqz1.cfg -c \\\"init $<SEMICOLON> pld load 0 \${OUT_BIN} $<SEMICOLON> exit\\\""
 )
 
+add_xc_board(
+  BOARD pynqz1-rendering-pr1
+  DEVICE xc7z020-rendering-pr1
+  PACKAGE test
+  PROG_CMD "${OPENOCD} -f ${PRJXRAY_DIR}/utils/openocd/board-digilent-pynqz1.cfg -c \\\"init $<SEMICOLON> pld load 0 \${OUT_BIN} $<SEMICOLON> exit\\\""
+  PART xc7z020clg400-1
+)
+
+add_xc_board(
+  BOARD pynqz1-rendering-pr2
+  DEVICE xc7z020-rendering-pr2
+  PACKAGE test
+  PROG_CMD "${OPENOCD} -f ${PRJXRAY_DIR}/utils/openocd/board-digilent-pynqz1.cfg -c \\\"init $<SEMICOLON> pld load 0 \${OUT_BIN} $<SEMICOLON> exit\\\""
+  PART xc7z020clg400-1
+)
+
+add_xc_board(
+  BOARD pynqz1-rendering-overlay
+  DEVICE xc7z020-rendering-overlay
+  PACKAGE test
+  PROG_CMD "${OPENOCD} -f ${PRJXRAY_DIR}/utils/openocd/board-digilent-pynqz1.cfg -c \\\"init $<SEMICOLON> pld load 0 \${OUT_BIN} $<SEMICOLON> exit\\\""
+  PART xc7z020clg400-1
+)
+
 #add_xc_board(
 #  BOARD marszx3-full
 #  DEVICE xc7z020
